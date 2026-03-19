@@ -47,12 +47,13 @@ export default function HolidaysPage() {
   }, []);
 
   useEffect(() => {
-    const stored = getMembers();
-    setMembers(stored);
-    setLoading(false);
-    if (stored.length > 0) {
-      loadHolidays(stored);
+    async function init() {
+      const stored = await getMembers();
+      setMembers(stored);
+      setLoading(false);
+      if (stored.length > 0) loadHolidays(stored);
     }
+    init();
   }, [loadHolidays]);
 
   const countries = useMemo(() => {

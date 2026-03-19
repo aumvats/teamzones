@@ -48,12 +48,13 @@ export default function OverlapPage() {
   }, [selectedDate]);
 
   useEffect(() => {
-    const stored = getMembers();
-    setMembers(stored);
-    setLoading(false);
-    if (stored.length > 0) {
-      loadHolidays(stored);
+    async function init() {
+      const stored = await getMembers();
+      setMembers(stored);
+      setLoading(false);
+      if (stored.length > 0) loadHolidays(stored);
     }
+    init();
   }, [loadHolidays]);
 
   // Use UTC methods so date arithmetic works correctly in negative-UTC-offset timezones

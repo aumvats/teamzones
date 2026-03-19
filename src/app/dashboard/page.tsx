@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useMemo } from "react";
 import type { TeamMember, WeatherData, Holiday } from "@/types";
-import { getMembers, saveMembers, getWeatherForLocation, getHolidaysForCountry, setWeatherCache, setHolidayCache } from "@/lib/storage";
+import { getMembers, addMember, updateMember, removeMember, migrateLocalToSupabase, getWeatherForLocation, getHolidaysForCountry, setWeatherCache, setHolidayCache } from "@/lib/storage";
 import { fetchWeather } from "@/lib/api/weather";
 import { fetchHolidays } from "@/lib/api/holidays";
 import MemberCard from "@/components/features/MemberCard";
@@ -89,18 +89,27 @@ export default function DashboardPage() {
   }, []);
 
   useEffect(() => {
-    const stored = getMembers();
-    setMembers(stored);
-    setLoading(false);
-    if (stored.length > 0) {
+    async function init() {
+      const stored = await getMembers();
+      if (stored.length === 0) {
+        await migrateLocalToSupabase();
+        const migrated = await getMembers();
+        setMembers(migrated);
+        setLoading(false);
+        if (migrated.length > 0) loadData(migrated);
+        return;
+      }
+      setMembers(stored);
+      setLoading(false);
       loadData(stored);
     }
+    init();
   }, [loadData]);
 
   const handleAdd = (member: TeamMember) => {
     const updated = [...members, member];
     setMembers(updated);
-    saveMembers(updated);
+    addMember(member);
     setShowAdd(false);
     loadData(updated);
   };
@@ -108,7 +117,7 @@ export default function DashboardPage() {
   const handleEdit = (updated: TeamMember) => {
     const newMembers = members.map((m) => (m.id === updated.id ? updated : m));
     setMembers(newMembers);
-    saveMembers(newMembers);
+    updateMember(updated);
     setEditMember(null);
     loadData(newMembers);
   };
@@ -116,7 +125,7 @@ export default function DashboardPage() {
   const handleRemove = (id: string) => {
     const updated = members.filter((m) => m.id !== id);
     setMembers(updated);
-    saveMembers(updated);
+    removeMember(id);
   };
 
   const handleAddClick = () => {
