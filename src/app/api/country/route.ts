@@ -23,7 +23,8 @@ export async function GET(request: NextRequest) {
 
     if (!res.ok) {
       console.error("[country] REST Countries returned", res.status, "for code:", upper);
-      const fallback = { code: upper, name: upper, flagEmoji: upper, timezones: [] };
+      const flagEmoji = upper.split('').map(c => String.fromCodePoint(c.charCodeAt(0) + 127397)).join('');
+      const fallback = { code: upper, name: upper, flagEmoji, timezones: [] };
       return NextResponse.json(fallback);
     }
 
@@ -45,7 +46,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(result);
   } catch (err) {
     console.error("[country] Failed to fetch country data for code:", upper, err);
-    const fallback = { code: upper, name: upper, flagEmoji: upper, timezones: [] };
+    const flagEmoji = upper.split('').map(c => String.fromCodePoint(c.charCodeAt(0) + 127397)).join('');
+    const fallback = { code: upper, name: upper, flagEmoji, timezones: [] };
     return NextResponse.json(fallback);
   }
 }
